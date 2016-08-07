@@ -26,9 +26,11 @@ class MasterViewController: UITableViewController {
             if let fileContents = try? String(contentsOfFile: filePath, usedEncoding: nil) {
                 // based on newline, split the giant string into an array of strings
                 allWords = fileContents.componentsSeparatedByString("\n")
+            } else {
+                loadDefaultWords()
             }
         } else {
-            allWords = ["silkworm"]
+            loadDefaultWords()
         }
 
         startGame()
@@ -89,37 +91,32 @@ class MasterViewController: UITableViewController {
 
     func submitAnswer(answer: String) {
         let lowerAnswer = answer.lowercaseString
-        let title: String
-        let message: String
 
-        if wordIsPossible(lowerAnswer) {
+        if !wordIsSample(lowerAnswer) {
             if wordIsOriginal(lowerAnswer) {
-                if wordIsReal(lowerAnswer) {
-                    // add answer to the start of objects
-                    objects.insert(answer, atIndex: 0)
-                    // tell tableView that a new row has been placed at row 0 and section 0, so it can animate the new cell appearing
-                    // this is done in lieu of calling reloadData(), which is inefficient
-                    let indexPath = NSIndexPath(forRow: 0, inSection: 0)
-                    // withRowAnimation = .Automatic: use standard system animation, which is to slide the new row in from the top
-                    tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
-                    // answer is valid
-                    return
+                if wordIsPossible(lowerAnswer) {
+                    if wordIsReal(lowerAnswer) {
+                        // add answer to the start of objects
+                        objects.insert(answer, atIndex: 0)
+                        // tell tableView that a new row has been placed at row 0 and section 0, so it can animate the new cell appearing
+                        // this is done in lieu of calling reloadData(), which is inefficient
+                        let indexPath = NSIndexPath(forRow: 0, inSection: 0)
+                        // withRowAnimation = .Automatic: use standard system animation, which is to slide the new row in from the top
+                        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                        // answer is valid
+                        return
+                    } else {
+                        showErrorMessage("Word not recognized", message: "You can't just make them up, you know!")
+                    }
                 } else {
-                    title = "Word not recognized"
-                    message = "You can't just make them up, you know!"
+                    showErrorMessage("Word not possible", message: "You can't spell that word from '\(self.title!.lowercaseString)'!")
                 }
             } else {
-                title = "Word used already"
-                message = "Be more original!"
+                showErrorMessage("Word used already", message: "Be more original!")
             }
         } else {
-            title = "Word not possible"
-            message = "You can't spell that word from '\(self.title!.lowercaseString)'!"
+            showErrorMessage("Word is the sample", message: "You can't use the sample word as your answer!")
         }
-
-        let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
-        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
-        presentViewController(alertController, animated: true, completion: nil)
     }
 
     func wordIsPossible(word: String) -> Bool {
@@ -143,6 +140,9 @@ class MasterViewController: UITableViewController {
     }
     
     func wordIsReal(word: String) -> Bool {
+        if word.characters.count < 3 {
+            return false
+        }
         // UITextChecker is an iOS class to spot spelling errors
         let checker = UITextChecker()
         // createa range between 0 and word's length
@@ -152,6 +152,20 @@ class MasterViewController: UITableViewController {
         // param 5: language (English)
         let misspelledRange = checker.rangeOfMisspelledWordInString(word, range: range, startingAt: 0, wrap: false, language: "en")
         return misspelledRange.location == NSNotFound
+    }
+
+    func wordIsSample(word: String) -> Bool {
+        return word == title
+    }
+
+    func showErrorMessage(title: String, message: String) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+        presentViewController(alertController, animated: true, completion: nil)
+    }
+
+    func loadDefaultWords() {
+        allWords = ["silkworm"]
     }
 }
 
