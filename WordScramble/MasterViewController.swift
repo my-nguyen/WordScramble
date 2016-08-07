@@ -101,15 +101,35 @@ class MasterViewController: UITableViewController {
     }
 
     func wordIsPossible(word: String) -> Bool {
+        // tmp is a working copy of word, with all letters converted to lowercase
+        var tmp = title!.lowercaseString
+        // extract and loop through each character in word
+        for letter in word.characters {
+            // find the letter in tmp
+            if let index = tmp.rangeOfString(String(letter)) {
+                // remove letter from tmp
+                tmp.removeAtIndex(index.startIndex)
+            } else {
+                return false
+            }
+        }
         return true
     }
     
     func wordIsOriginal(word: String) -> Bool {
-        return true
+        return !objects.contains(word)
     }
     
     func wordIsReal(word: String) -> Bool {
-        return true
+        // UITextChecker is an iOS class to spot spelling errors
+        let checker = UITextChecker()
+        // createa range between 0 and word's length
+        let range = NSMakeRange(0, word.characters.count)
+        // param 1: word
+        // param 2: range to scan (the whole string)
+        // param 5: language (English)
+        let misspelledRange = checker.rangeOfMisspelledWordInString(word, range: range, startingAt: 0, wrap: false, language: "en")
+        return misspelledRange.location == NSNotFound
     }
 }
 
