@@ -89,15 +89,37 @@ class MasterViewController: UITableViewController {
 
     func submitAnswer(answer: String) {
         let lowerAnswer = answer.lowercaseString
-        if wordIsPossible(lowerAnswer) && wordIsOriginal(lowerAnswer) && wordIsReal(lowerAnswer) {
-            // add answer to the start of objects
-            objects.insert(answer, atIndex: 0)
-            // tell tableView that a new row has been placed at row 0 and section 0, so that it can animate the new cell appearing
-            // this is done in lieu of calling reloadData(), which is inefficient
-            let indexPath = NSIndexPath(forRow: 0, inSection: 0)
-            // withRowAnimation = .Automatic: use standard system animation, which is to slide the new row in from the top
-            tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+        let title: String
+        let message: String
+
+        if wordIsPossible(lowerAnswer) {
+            if wordIsOriginal(lowerAnswer) {
+                if wordIsReal(lowerAnswer) {
+                    // add answer to the start of objects
+                    objects.insert(answer, atIndex: 0)
+                    // tell tableView that a new row has been placed at row 0 and section 0, so it can animate the new cell appearing
+                    // this is done in lieu of calling reloadData(), which is inefficient
+                    let indexPath = NSIndexPath(forRow: 0, inSection: 0)
+                    // withRowAnimation = .Automatic: use standard system animation, which is to slide the new row in from the top
+                    tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+                    // answer is valid
+                    return
+                } else {
+                    title = "Word not recognized"
+                    message = "You can't just make them up, you know!"
+                }
+            } else {
+                title = "Word used already"
+                message = "Be more original!"
+            }
+        } else {
+            title = "Word not possible"
+            message = "You can't spell that word from '\(self.title!.lowercaseString)'!"
         }
+
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .Alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+        presentViewController(alertController, animated: true, completion: nil)
     }
 
     func wordIsPossible(word: String) -> Bool {
