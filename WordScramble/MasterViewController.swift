@@ -75,6 +75,7 @@ class MasterViewController: UITableViewController {
         alertController.addTextFieldWithConfigurationHandler(nil)
         // trailing closure syntax: handler, the very last parameter, is an anonymous closure (callback), so it becomes a block of code itself
         // self (the current view controller) and alertController are referenced inside the closure, so they need to be declared as unowned (weak) reference to avoid the circular-reference problem
+        // self is declared because the closure calls submitAnswer() method which is defined in the current view controller
         // the closure accepts a UIAlertAction as parameter
         // "in" marks the actual beginning of the closure code
         let submitAction = UIAlertAction(title: "Submit", style: .Default) { [unowned self, alertController] (action: UIAlertAction!) in
@@ -84,6 +85,31 @@ class MasterViewController: UITableViewController {
         // add submitAction to the UIAlertController
         alertController.addAction(submitAction)
         presentViewController(alertController, animated: true, completion: nil)
+    }
+
+    func submitAnswer(answer: String) {
+        let lowerAnswer = answer.lowercaseString
+        if wordIsPossible(lowerAnswer) && wordIsOriginal(lowerAnswer) && wordIsReal(lowerAnswer) {
+            // add answer to the start of objects
+            objects.insert(answer, atIndex: 0)
+            // tell tableView that a new row has been placed at row 0 and section 0, so that it can animate the new cell appearing
+            // this is done in lieu of calling reloadData(), which is inefficient
+            let indexPath = NSIndexPath(forRow: 0, inSection: 0)
+            // withRowAnimation = .Automatic: use standard system animation, which is to slide the new row in from the top
+            tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+        }
+    }
+
+    func wordIsPossible(word: String) -> Bool {
+        return true
+    }
+    
+    func wordIsOriginal(word: String) -> Bool {
+        return true
+    }
+    
+    func wordIsReal(word: String) -> Bool {
+        return true
     }
 }
 
